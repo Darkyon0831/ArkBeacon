@@ -10,6 +10,11 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+build/
+
+.svn/
+.vscode/
+.__pycache__/
 
 # CLion
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
