@@ -59,10 +59,10 @@ void StopServer()
 
 void Defines()
 {
-    m_argument_processor.AddArgumentDefiner("ScriptsPath", 1);
-    m_argument_processor.AddArgumentDefiner("Port", 1);
-    m_argument_processor.AddArgumentDefiner("UseTLS", 2);
-    m_argument_processor.AddArgumentDefiner("AutoReloadScripts", 0);
+    m_argument_processor.AddArgumentDefiner("ScriptsPath", {"ScriptPath"});
+    m_argument_processor.AddArgumentDefiner("Port", {"Port"});
+    m_argument_processor.AddArgumentDefiner("UseTLS", {"SSLChainFile", "SSLPrivateKeyFile"});
+    m_argument_processor.AddArgumentDefiner("AutoReloadScripts", {"true_or_false"});
 
     m_argument_processor.AddDefaultArgument("ScriptsPath", {m_script_path});
     m_argument_processor.AddDefaultArgument("Port", {"9002"});
@@ -121,10 +121,12 @@ void PythonCallThread()
 
 void BeforeInputCallback()
 {
+    const std::string& port = m_argument_processor.GetArgument("Port")->values.at(0);
+
     if (m_use_tls)
-        std::cout << "ArkBeacon TLS Server is running. Type 'help' to view commands." << std::endl;
+        std::cout << "ArkBeacon TLS Server is running with port " << port << ". Type 'help' to view commands." << std::endl;
     else
-        std::cout << "ArkBeacon Server is running. Type 'help' to view commands." << std::endl;
+        std::cout << "ArkBeacon Server is running with port " << port << ". Type 'help' to view commands." << std::endl;
 }
 
 void AdditionalPathsCallback(std::vector<std::string>& additional_paths)

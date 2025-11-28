@@ -21,9 +21,9 @@ namespace ArkBeacon
             bool found = false;
             for (auto& argument_definer : m_argument_definer)
             {
-                if (argument_definer.first == argument.name)
+                if (argument_definer.name == argument.name)
                 {
-                    num_values = argument_definer.second;
+                    num_values = argument_definer.sub_arguments.size();
                     found = true;
                     break;
                 }
@@ -42,7 +42,21 @@ namespace ArkBeacon
                     argument.values.push_back(argv[i]);
                 else
                 {
-                    PrintError(std::format("Invalid number of values in argument {0}, must have {1} values", argument.name, num_values));
+                    std::string string_builder = std::format("Not corrent values for argument {0}. Expected values for argument {0} are: ", argument.name);
+
+                    for (const auto& sub_arg : m_argument_definer)
+                    {
+                        if (sub_arg.name == argument.name)
+                        {
+                            for (const auto& sub_argument_name : sub_arg.sub_arguments)
+                            {
+                                string_builder += std::format("<{0}> ", sub_argument_name);
+                            }
+                            break;
+                        }
+                    }
+
+                    PrintError(string_builder);
                     return false;
                 }
             }
@@ -126,9 +140,9 @@ namespace ArkBeacon
         return nullptr; 
     }
 
-    void ArgumentProcessor::AddArgumentDefiner(std::string name, int num_values)
+    void ArgumentProcessor::AddArgumentDefiner(std::string name, std::vector<std::string_view>&& sub_arguments)
     {
-        m_argument_definer.insert({name, num_values});
+        m_argument_definer.push_back({name, std::move(sub_arguments)});
 
         int i = 0;
     }
