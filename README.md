@@ -1,6 +1,6 @@
 # ArkBeacon
 
-A powerful WebSocket server designed for ARK game automation and data handling. ArkBeacon allows you to execute custom Python scripts via WebSocket connections and return processed data to clients in real-time.
+A powerful WebSocket server designed for data handling. ArkBeacon allows you to execute custom Python scripts via WebSocket connections and return processed data to clients in real-time.
 
 ## Features
 
