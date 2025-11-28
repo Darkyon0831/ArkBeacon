@@ -108,7 +108,7 @@ namespace ArkBeacon
     template <class _dh>
     inline bool PythonHandler<_dh>::RunScript(_dh* data_handler, std::string_view script_name)
     {
-        if (Py_IsInitialized())
+        if (Py_IsInitialized() && script_name != "")
         {
             if (m_auto_reload_module)
                 CheckDoReload(script_name);
