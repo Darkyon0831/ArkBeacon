@@ -65,16 +65,16 @@ Run the server with default settings (port 9002, no TLS):
 
 ```bash
 # Use custom port
-./ArkBeacon Port 8080
+./ArkBeacon -Port 8080
 
 # Enable TLS
-./ArkBeacon UseTLS /path/to/cert.pem /path/to/key.pem
+./ArkBeacon -UseTLS /path/to/cert.pem /path/to/key.pem
 
 # Custom scripts directory with auto-reload
-./ArkBeacon ScriptsPath /home/user/my_scripts AutoReloadScripts
+./ArkBeacon -ScriptsPath /home/user/my_scripts -AutoReloadScripts
 
 # Combine multiple arguments
-./ArkBeacon Port 9000 ScriptsPath ./custom_scripts AutoReloadScripts
+./ArkBeacon -Port 9000 -ScriptsPath ./custom_scripts -AutoReloadScripts
 ```
 
 ### Interactive Commands
@@ -335,11 +335,3 @@ ArkBeacon/
 - Verify certificate and key file paths are correct
 - Ensure certificate is valid and not expired
 - Check file permissions on certificate files
-
-## License
-
-[Add your license information here]
-
-## Contributing
-
-[Add contribution guidelines here]
