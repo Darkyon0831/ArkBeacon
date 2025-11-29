@@ -19,7 +19,7 @@ namespace ArkBeacon
             std::string_view description;
         };
 
-        InputHandler() : m_running(true) {};
+        InputHandler() : m_running(true), m_input_enabled(true) {};
         ~InputHandler() = default;
 
         void StartInputLoop();
@@ -28,6 +28,8 @@ namespace ArkBeacon
         void AddCommand(const Command& command) { m_commands.push_back(command); }
 
         void StopInput();
+        void DisableInput();
+        void EnableInput();
 
         void SetBeforeInputCallback(std::function<void()> before_input_callback) { m_before_input_callback = before_input_callback; }
 
@@ -35,6 +37,7 @@ namespace ArkBeacon
 
     private:
         bool m_running;
+        bool m_input_enabled;
         std::vector<Command> m_commands;
 
         std::function<void()> m_before_input_callback = nullptr;
