@@ -7,6 +7,7 @@
 #include <string>
 
 #include "DataFetcher.h"
+#include "Logger.h"
 
 using json = nlohmann::json;
 
@@ -42,8 +43,11 @@ namespace ArkBeacon
             : m_port(port)
             , m_output_parser_callback(nullptr)
         { 
+            // Disable all access logging
             m_handle.clear_access_channels(websocketpp::log::alevel::all);
-            m_handle.set_access_channels(websocketpp::log::alevel::connect); 
+            
+            // Disable all error logging
+            m_handle.clear_error_channels(websocketpp::log::elevel::all);
         }
 
         void SetOutputParserCallback(std::function<void(json&, typename DataFetcher<_DataFetcher_Type>::ValueNamePair&)> output_parser_callback) { m_output_parser_callback = output_parser_callback; }
@@ -76,6 +80,9 @@ namespace ArkBeacon
 
         m_handle.set_open_handler([&](websocketpp::connection_hdl hdl) {
             m_active_connections.push_back(hdl);
+
+            ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "New connection established. Total connections: " + std::to_string(m_active_connections.size()));
+            ArkBeacon::Logger::PrintInteractiveConsoleLine();
         });
 
         m_handle.set_close_handler([&](websocketpp::connection_hdl hdl) {
@@ -93,6 +100,8 @@ namespace ArkBeacon
             if (index != -1)
             {
                 m_active_connections.erase(m_active_connections.begin() + index);
+
+                ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "Connection closed. Total connections: " + std::to_string(m_active_connections.size()));
             }
         });
 
@@ -196,7 +205,7 @@ namespace ArkBeacon
             ctx->use_certificate_chain_file(m_ssl_files.certificate_chain_file);
             ctx->use_private_key_file(m_ssl_files.private_key_file, asio::ssl::context::file_format::pem);
         } catch (std::exception& e) {
-            std::cout << "Exception: " << e.what() << std::endl;
+            ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelError, std::string("TLS Exception: ") + e.what());
         }
 
         return ctx;

@@ -1,4 +1,5 @@
 #include "ConfigLoader.h"
+#include "Logger.h"
 
 bool ArkBeacon::Utils::ConfigLoader::LoadConfig(std::string_view file_path)
 {
@@ -14,7 +15,7 @@ bool ArkBeacon::Utils::ConfigLoader::LoadConfig(std::string_view file_path)
     }
     catch(const toml::v3::parse_error& e)
     {
-        std::cerr << "Failed to load config from " << file_path << ": " << e.description() << '\n';
+        ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelError, "Failed to load config from " + std::string(file_path) + ": " + std::string(e.description()));
         return false;
     }
 

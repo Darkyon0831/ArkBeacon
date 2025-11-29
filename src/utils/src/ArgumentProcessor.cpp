@@ -1,4 +1,5 @@
 #include "ArgumentProcessor.h"
+#include "Logger.h"
 
 namespace ArkBeacon
 {
@@ -64,12 +65,12 @@ namespace ArkBeacon
             #ifdef DEBUG
             if (argument.values.empty() == false)
             {
-                std::cout << "Added argument: " << argument.name << " with values: ";
+                std::string msg = "Added argument: " + argument.name + " with values: ";
                 for (const auto& value : argument.values)
                 {
-                    std::cout << value << " ";
+                    msg += value + " ";
                 }
-                std::cout << std::endl;
+                ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelDebug, msg);
             }
             #endif
 
@@ -99,18 +100,18 @@ namespace ArkBeacon
         arg.values = std::move(values);
         m_arguments.push_back(std::move(arg));
         #ifdef DEBUG
-        std::cout << "Added argument: " << arg.name << " with values: ";
+        std::string msg = "Added argument: " + arg.name + " with values: ";
         for (const auto& value : arg.values)
         {            
-            std::cout << value << " ";
+            msg += value + " ";
         }
-        std::cout << std::endl; // Debug output
+        ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelDebug, msg);
         #endif
     }
 
     void ArgumentProcessor::PrintError(std::string_view message) const
     {
-        std::cerr << message << std::endl;
+        ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelError, std::string(message));
     }
 
     const ArgumentProcessor::Argument* ArgumentProcessor::GetArgument(std::string_view name) const
@@ -118,17 +119,17 @@ namespace ArkBeacon
         for (const auto& arg : m_arguments)
         {
             #ifdef DEBUG
-            std::cout << "Checking argument: " << arg.name << std::endl;
+            ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelDebug, "Checking argument: " + arg.name);
             #endif
             if (arg.name == std::string(name))
             {
                 #ifdef DEBUG
-                std::cout << "Found argument: " << arg.name << " with values: ";
+                std::string msg = "Found argument: " + arg.name + " with values: ";
                 for (const auto& value : arg.values)
                 {
-                    std::cout << value << " ";
+                    msg += value + " ";
                 }
-                std::cout << std::endl;
+                ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelDebug, msg);
                 #endif
                 return &arg;
             }
