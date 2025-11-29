@@ -6,6 +6,7 @@ add_library(ArkBeacon_Utils STATIC
     src/ArgumentProcessor.cpp
     src/InputHandler.cpp
     src/ConfigHandler.cpp
+    src/Logger.cpp
 )
 
 target_include_directories(ArkBeacon_Utils PRIVATE
