@@ -8,9 +8,6 @@
 #include <chrono>
 #include <mutex>
 
-#include <sys/stat.h>
-#include <sys/types.h>
-
 #ifndef __ARKBEACON_PYTHONHANDLER_H__
 #define __ARKBEACON_PYTHONHANDLER_H__
 
@@ -70,7 +67,7 @@ namespace ArkBeacon
 
         std::function<void(std::vector<std::string>&)> m_additional_include_paths;
         std::vector<ErrorObject> m_errors;
-        std::unordered_map<std::string, time_t> m_loaded_modules;
+        std::unordered_map<std::string, std::chrono::nanoseconds> m_loaded_modules;
         std::mutex m_mutex;
     };
     
@@ -129,11 +126,9 @@ namespace ArkBeacon
                 }
 
                 std::string file_path = m_scripts_path + std::string("/") + std::string(script_name) + ".py";
-                struct stat result;
-                stat(file_path.c_str(), &result);
-                time_t timestamp = result.st_mtime;
+                auto file_time = fs::last_write_time(file_path);
 
-                m_loaded_modules.insert(std::pair<std::string, time_t>(std::string(script_name), timestamp));
+                m_loaded_modules.insert(std::pair<std::string, std::chrono::nanoseconds>(std::string(script_name), file_time.time_since_epoch()));
             }
 
             PyObject* p_func = PyObject_GetAttrString(p_module, m_entry_point.c_str());
@@ -255,13 +250,11 @@ namespace ArkBeacon
     {
         if (auto it = m_loaded_modules.find(module_name.data()); it != m_loaded_modules.end())
         {
-            time_t timestamp = it->second;
+            std::chrono::nanoseconds timestamp = it->second;
             std::string file_path = m_scripts_path + std::string("/") + std::string(module_name) + ".py";
-            struct stat result;
-            stat(file_path.c_str(), &result);
-            time_t current_timestamp = result.st_mtime;
+            auto file_time = fs::last_write_time(file_path);
 
-            if (current_timestamp > timestamp)
+            if (file_time.time_since_epoch() > timestamp)
                 ReloadModule(module_name);
         }
     }
