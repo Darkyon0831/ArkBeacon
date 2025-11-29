@@ -13,6 +13,7 @@
 #include "InputHandler.h"
 #include "CallQueue.h"
 #include "ConfigLoader.h"
+#include "Logger.h"
 
 std::shared_ptr<ArkBeacon::PythonHandler<ArkBeacon::ParameterLoader>> m_python_handler;
 std::unique_ptr<std::thread> m_command_line_io_thread;
@@ -25,7 +26,30 @@ ArkBeacon::ArgumentProcessor m_argument_processor;
 
 ArkBeacon::InputHandler m_input_handler;
 
-std::string m_executable_path = std::filesystem::canonical("/proc/self/exe").parent_path().string();
+#ifdef _WIN32
+    #include <windows.h>
+    std::string GetExecutablePath() {
+        char path[MAX_PATH];
+        GetModuleFileNameA(NULL, path, MAX_PATH);
+        return std::filesystem::path(path).parent_path().string();
+    }
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+    std::string GetExecutablePath() {
+        char path[1024];
+        uint32_t size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) == 0) {
+            return std::filesystem::canonical(path).parent_path().string();
+        }
+        return "";
+    }
+#else // Linux
+    std::string GetExecutablePath() {
+        return std::filesystem::canonical("/proc/self/exe").parent_path().string();
+    }
+#endif
+    
+std::string m_executable_path = GetExecutablePath();
 std::string m_script_path = m_executable_path + "/Scripts";
 
 bool m_running = true;
@@ -48,7 +72,7 @@ void Message_Callback(json& j_obj, ArkBeacon::ParameterLoader* parameter_loader,
 
 void StopServer()
 {
-    std::cout << "Stopping server and exiting..." << std::endl;
+    ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "Stopping server and exiting...");
     m_input_handler.StopInput(); 
 
     if (m_use_tls)
@@ -62,7 +86,7 @@ void Defines()
     m_argument_processor.AddArgumentDefiner("ScriptsPath", {"ScriptPath"});
     m_argument_processor.AddArgumentDefiner("Port", {"Port"});
     m_argument_processor.AddArgumentDefiner("UseTLS", {"SSLChainFile", "SSLPrivateKeyFile"});
-    m_argument_processor.AddArgumentDefiner("AutoReloadScripts", {"true_or_false"});
+    m_argument_processor.AddArgumentDefiner("AutoReloadScripts", {});
 
     m_argument_processor.AddDefaultArgument("ScriptsPath", {m_script_path});
     m_argument_processor.AddDefaultArgument("Port", {"9002"});
@@ -79,16 +103,17 @@ void Defines()
         .action = [&]() {
             if (m_python_handler)
             {
-                std::cout << "Reloading Python modules..." << std::endl;
+                m_input_handler.DisableInput();
+                ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "Reloading Python modules...");
                 
                 m_call_queue.Push({
                     .call = [](std::shared_ptr<ArkBeacon::PythonHandler<ArkBeacon::ParameterLoader>> handler) {
                         handler->ReloadModules();
-                        std::cout << "Modules reloaded." << std::endl;
+                        ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "Modules reloaded.");
+                        ArkBeacon::Logger::PrintInteractiveConsoleLine();
+                        m_input_handler.EnableInput();
                     }
                 });
-
-
             }
         },
         .name = "reload",
@@ -113,7 +138,8 @@ void PythonCallThread()
         else
         {
             #ifdef DEBUG
-            std::cerr << "Call request is empty." << std::endl;
+            ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelError, "Call request is empty.");
+            ArkBeacon::Logger::PrintInteractiveConsoleLine();
             #endif
         }
     }
@@ -124,9 +150,9 @@ void BeforeInputCallback()
     const std::string& port = m_argument_processor.GetArgument("Port")->values.at(0);
 
     if (m_use_tls)
-        std::cout << "ArkBeacon TLS Server is running with port " << port << ". Type 'help' to view commands." << std::endl;
+        ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "ArkBeacon TLS Server is running with port " + port + ". Type 'help' to view commands.");
     else
-        std::cout << "ArkBeacon Server is running with port " << port << ". Type 'help' to view commands." << std::endl;
+        ArkBeacon::Logger::Log(ArkBeacon::Logger::LogLevelInfo, "ArkBeacon Server is running with port " + port + ". Type 'help' to view commands.");
 }
 
 void AdditionalPathsCallback(std::vector<std::string>& additional_paths)
